@@ -1,8 +1,8 @@
 {
-  "name": "y",
+  "name": "smallfood",
   "version": "1.0.0",
-  "description": "y",
-  "author": "y",
+  "description": "A Vue.js project",
+  "author": "kaixuan1992 <2568189783@qq.com>",
   "private": true,
   "scripts": {
     "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
@@ -10,8 +10,12 @@
     "build": "node build/build.js"
   },
   "dependencies": {
+    "jquery": "^3.3.1",
+    "mint-ui": "^2.2.13",
+    "muse-ui": "^3.0.0-beta.1",
     "vue": "^2.5.2",
-    "vue-router": "^3.0.1"
+    "vue-router": "^3.0.1",
+    "moment": "^2.22.1"
   },
   "devDependencies": {
     "autoprefixer": "^7.1.2",
@@ -30,7 +34,12 @@
     "file-loader": "^1.1.4",
     "friendly-errors-webpack-plugin": "^1.6.1",
     "html-webpack-plugin": "^2.30.1",
+    "less": "^3.0.4",
+    "less-loader": "^4.1.0",
     "node-notifier": "^5.1.2",
+    "node-sass": "^4.9.0",
+    "sass-loader": "^4.1.1",
+    "sass-resources-loader": "^1.2.0",
     "optimize-css-assets-webpack-plugin": "^3.2.0",
     "ora": "^1.2.0",
     "portfinder": "^1.0.13",

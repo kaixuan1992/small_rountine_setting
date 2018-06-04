@@ -2,6 +2,7 @@
 const path = require('path')
 const utils = require('./utils')
 const config = require('../config')
+var webpack = require('webpack')
 const vueLoaderConfig = require('./vue-loader.conf')
 
 function resolve (dir) {
@@ -11,6 +12,13 @@ function resolve (dir) {
 
 
 module.exports = {
+  plugins: [
+    new webpack.optimize.CommonsChunkPlugin('common.js'),
+    new webpack.ProvidePlugin({
+        jQuery: "jquery",
+        $: "jquery"
+    })
+   ],
   context: path.resolve(__dirname, '../'),
   entry: {
     app: './src/main.js'
