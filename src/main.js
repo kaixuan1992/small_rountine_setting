@@ -13,6 +13,7 @@ import Mint from 'mint-ui';
 import { Toast } from 'mint-ui';
 import $ from 'jquery'
 import moment from 'moment/moment'
+// import '../src/utils/utils.js'
 Vue.use(Mint);
 window.baseUrl = 'https://opplatform.eatjoys.com'
 

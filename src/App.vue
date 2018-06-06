@@ -53,7 +53,9 @@
     font-family: -apple-system-font, "Helvetica Neue", sans-serif;
     -webkit-tap-highlight-color: transparent;
   }
-  
+input,textarea{
+    -webkit-appearance: none;
+}
   a:active {
     /* color: #4499EE; */
     text-decoration: none;

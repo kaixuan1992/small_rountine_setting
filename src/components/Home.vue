@@ -15,19 +15,19 @@
     <div class="validation－box">
       <div class="validation-item border1px">
         <div class="validation-title">起送金额：</div>
-        <div class="input-box"><input @input="handleInput" placeholder="请输入配送金额" type="text" class="input"></div>
+        <div class="input-box"><input ref="handleInput" @input="handleInput" placeholder="请输入配送金额" type="text" class="input"></div>
       </div>
       <div class="validation-item border1px">
         <div class="validation-title">配送范围：</div>
-        <div class="input-box"><input @input="handleRange" placeholder="请输入配送范围" type="text" class="input"></div>
+        <div class="input-box"><input ref="handleRange" @input="handleRange" placeholder="请输入配送范围" type="text" class="input"></div>
       </div>
       <div class="validation-item border1px">
         <div class="validation-title">配送费：</div>
-        <div class="input-box"><input @input="handleDelivery" type="text" placeholder="请输入配送费" class="input"></div>
+        <div class="input-box"><input ref="deliveryfree" @input="handleDelivery" type="text" placeholder="请输入配送费" class="input"></div>
       </div>
       <div class="validation-item border1px">
         <div class="validation-title">满多少免配送：</div>
-        <div class="input-box"><input @input="handleFree" placeholder="请输入免送费起始金额" type="text" class="input"></div>
+        <div class="input-box"><input ref="preferential" @input="handleFree" placeholder="请输入免送费起始金额" type="text" class="input"></div>
       </div>
     </div>
     <div class="save" @click="saveCheck">保存</div>
@@ -38,6 +38,11 @@
   import {
     Toast
   } from 'mint-ui';
+  import {
+    setStore,
+    getStore,
+    removeStore
+  } from '../utils/utils'
   export default {
     name: 'HelloWorld',
     data() {
@@ -45,56 +50,88 @@
         msg: 'Welcome to Your Vue.js App',
         value: false,
         isBusiness: true,
-        isBusinessTime:false,
+        isBusinessTime: false,
         sendMount: '',
         deliveryRange: '',
         deliveryfree: '',
         preferential: '',
-  
+        count: 1,
+        businessId: ''
   
       }
     },
     mounted() {
-      setInterval(() => {
-        let d = new Date()
-        let nowdata = d.getHours() + ':' + d.getMinutes()
-        // console.log(nowdata )
-        this.isBusinessRange('08:00', '20:00', nowdata)
-        // console.log(0)
-      }, 1000)
-  
+      this.$nextTick(() => {
+        window.getOrderList = this.getOrderList;
+        // let count = ++this.count
+        // setStore('count', count)
+        setInterval(() => {
+          let d = new Date()
+          let nowdata = d.getHours() + ':' + d.getMinutes()
+          // console.log(nowdata )
+          this.isBusinessRange('08:00', '20:00', nowdata)
+          // console.log(0)
+        }, 1000)
+      })
   
     },
     methods: {
+      getOrderList(data) {
+        this.businessId = parseInt(data)
+        if(this.businessId){
+            this.getPreSave()
+        }
+      },
+      getPreSave() {
+        window.request('post', '/boss/takeoutConfigDetail', {
+          businessId: this.businessId
+        }, (res, self) => {
+          if (res.code == 1)
+            this.value = res.data.closed ? true : false;
+          this.$refs.handleInput.value = this.sendMount = res.data.sendMoney || ''
+          this.$refs.handleRange.value = this.deliveryRange = res.data.limitSendArea || ''
+          this.$refs.deliveryfree.value = this.deliveryfree = res.data.sendPrice || ''
+          this.$refs.preferential.value = this.preferential = res.data.sendPriceFree || ''
+        }, () => {
+          Tip('服务器返回有误', 1000, 'top');
+        })
+      },
+      takeOut() {
+        takeoutConfigDetail
+      },
       change() {
         if (this.value) {
           let data = {
-            businessId:5513,
-            closed:1,
+            businessId: this.businessId,
+            closed: 1,
           }
-          window.request('post','/boss/takeoutClose',data,(res)=>{
-            if(res.code == 1)
-            Tip('已开启营业', 3000,'top');
-          },()=>{
-             Tip('服务器返回有误', 3000,'top');
+          window.request('post', '/boss/takeoutClose', data, (res) => {
+            if (res.code == 1) {
+              Tip('已开启营业', 1000, 'top');
+              this.isBusiness = true;
+            }
+  
+          }, () => {
+            Tip('服务器返回有误', 1000, 'top');
           })
-          this.isBusiness = true;
-
+  
         } else {
-           let data = {
-            businessId:5513,
-            closed:0,
+          let data = {
+            businessId: this.businessId,
+            closed: 0,
           }
-          window.request('post','/boss/takeoutClose',data,(res)=>{
-            if(res.code == 1)
-            Tip('已打烊', 3000,'top');
-          },()=>{
-             Tip('服务器返回有误', 3000,'top');
+          window.request('post', '/boss/takeoutClose', data, (res) => {
+            if (res.code == 1) {
+              Tip('已打烊', 1000, 'top');
+              this.isBusiness = false;
+            } else {
+              Tip(res.message, 3000, 'top');
+            }
+          }, () => {
+            Tip('服务器返回有误', 1000, 'top');
           })
-          this.isBusiness = false;
+  
         }
-        // console.log(val)
-        // console.log(this.value)
       },
       isBusinessRange(beginTime, endTime, nowTime) {
         // var time_range = function(beginTime, endTime, nowTime) {
@@ -201,23 +238,25 @@
           Tip(isInteger, 3000);
           return;
         }
-      this.saveDate('post','/boss/takeoutConfig',{
-        businessId:5133,
-        sendMoney:parseInt(this.sendMount),
-        limitSendArea:parseInt(this.deliveryRange),
-        sendPrice:parseInt(this.deliveryfree),
-        sendPriceFree:parseInt(this.preferential),
-      },(res)=>{
-        if(res.code == 1 ){
-          Tip('保存成功', 3000,'top');
-           console.log(res)
-        }
-      },(res)=>{
-          Tip('服务器返回有误', 3000,'top');
-      })
+        this.saveDate('post', '/boss/takeoutConfig', {
+          businessId: this.businessId,
+          sendMoney: parseInt(this.sendMount),
+          limitSendArea: parseInt(this.deliveryRange),
+          sendPrice: parseInt(this.deliveryfree),
+          sendPriceFree: parseInt(this.preferential),
+        }, (res) => {
+          if (res.code == 1) {
+            Tip('保存成功', 3000, 'top');
+            console.log(res)
+          } else {
+            Tip(res.message, 3000, 'top');
+          }
+        }, (res) => {
+          Tip('服务器返回有误', 3000, 'top');
+        })
       },
-      saveDate(type,url,data,successfn,errorfn){
-        window.request(type,url,data,successfn,errorfn)
+      saveDate(type, url, data, successfn, errorfn) {
+        window.request(type, url, data, successfn, errorfn)
       }
     }
   }
@@ -284,23 +323,29 @@
         }
         .input-box {
           flex: 2.5;
-          height: 0.8rem;
-          line-height: 0.8rem;
+          height: 1.2rem;
+          line-height: 1.2rem;
           position: relative;
-          top: 0.4rem;
+          top: 0.2rem;
         }
         .input {
-          border: 1px solid #eaeaea;
           padding: 0 0.32rem;
           color: #999;
-          width: 80%;
+          width: 92%;
+          background: none;
+          outline: none;
+          border: 1px solid #eaeaea;
+          border-radius: 4px;
+          resize: none;
+          box-sizing: border-box;
+          // border: 0px;
         }
       }
     }
     .save {
       width: 90%;
-      height: 1rem;
-      line-height: 1rem;
+      height: 1.2rem;
+      line-height: 1.2rem;
       text-align: center;
       margin: 0 auto;
       margin-top: 30px;
